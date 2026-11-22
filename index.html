@@ -1,0 +1,298 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Bảng kết quả dập lửa</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<style>
+:root {
+  --bg: #f1f4f6;
+  --surface: #ffffff;
+  --fg: #13202b;
+  --muted: #566774;
+  --line: #d6dee4;
+  --t1: #1b7587;
+  --t2: #d4450c;
+  --accent: #13202b;
+  --accent-fg: #ffffff;
+  --danger: #b3261e;
+  --font-body: "Be Vietnam Pro", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0e161c; --surface: #16212a; --fg: #e7eef3; --muted: #92a3b0; --line: #26343f;
+    --t1: #4cc3d9; --t2: #ff8a4c; --accent: #e7eef3; --accent-fg: #0e161c; --danger: #ff8d85;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0e161c; --surface: #16212a; --fg: #e7eef3; --muted: #92a3b0; --line: #26343f;
+  --t1: #4cc3d9; --t2: #ff8a4c; --accent: #e7eef3; --accent-fg: #0e161c; --danger: #ff8d85;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--fg); font-family: var(--font-body); font-size: 15px; line-height: 1.55; }
+.wrap {
+  max-width: 760px; margin: 0 auto; padding-block: 28px 48px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  display: flex; flex-direction: column; gap: 22px;
+}
+header { display: flex; flex-direction: column; gap: 6px; }
+.kicker { font-size: 12px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); font-weight: 600; }
+h1 { margin: 0; font-size: clamp(24px, 5vw, 32px); line-height: 1.2; font-weight: 700; text-wrap: balance; }
+.lead { margin: 0; color: var(--muted); max-width: 62ch; }
+.def { display: flex; flex-wrap: wrap; gap: 8px 20px; margin-top: 4px; font-size: 14px; }
+.def span { display: inline-flex; align-items: center; gap: 8px; }
+.sw { width: 12px; height: 12px; border-radius: 3px; display: inline-block; }
+.sw.t1 { background: var(--t1); } .sw.t2 { background: var(--t2); }
+
+section { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 18px; min-width: 0; }
+h2 { margin: 0 0 12px; font-size: 16px; font-weight: 600; }
+
+form { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; align-items: end; }
+label { display: flex; flex-direction: column; gap: 4px; font-size: 13px; color: var(--muted); font-weight: 500; min-width: 0; }
+input, select {
+  font: inherit; font-family: var(--font-mono); font-size: 16px; color: var(--fg); background: var(--bg);
+  border: 1px solid var(--line); border-radius: 6px; padding: 9px 10px; width: 100%; min-width: 0;
+}
+select { font-family: var(--font-body); }
+input:focus-visible, select:focus-visible, button:focus-visible { outline: 2px solid var(--t1); outline-offset: 2px; }
+.actions { grid-column: 1 / -1; display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+button {
+  font: inherit; font-weight: 600; cursor: pointer; border-radius: 6px; padding: 9px 16px; border: 1px solid var(--accent);
+  background: var(--accent); color: var(--accent-fg);
+}
+button.ghost { background: transparent; color: var(--fg); border-color: var(--line); }
+button.ghost.armed { color: var(--danger); border-color: var(--danger); }
+button:disabled { opacity: .5; cursor: not-allowed; }
+#msg { font-size: 13px; color: var(--muted); min-height: 1.4em; }
+#msg.err { color: var(--danger); }
+.note { font-size: 13px; color: var(--muted); margin: 10px 0 0; }
+
+.empty { color: var(--muted); font-size: 14px; margin: 0 0 12px; }
+.chart { display: flex; flex-direction: column; gap: 14px; }
+.row { display: grid; grid-template-columns: 4.2rem minmax(0, 1fr); gap: 10px; align-items: center; }
+.gname { font-weight: 600; font-size: 14px; }
+.bars { display: flex; flex-direction: column; gap: 5px; min-width: 0; }
+.bar { display: grid; grid-template-columns: minmax(0, 1fr) 4.4rem; gap: 8px; align-items: center; }
+.track {
+  height: 16px; position: relative;
+  background-image: linear-gradient(to right, var(--line) 1px, transparent 1px);
+  background-size: 25% 100%; border-right: 1px solid var(--line);
+}
+.fill { display: block; height: 100%; border-radius: 0 3px 3px 0; transition: width .35s ease; }
+.t1 .fill { background: var(--t1); } .t2 .fill { background: var(--t2); }
+.val { font-family: var(--font-mono); font-size: 13px; text-align: right; font-variant-numeric: tabular-nums; }
+.val.none { color: var(--muted); }
+.axis { display: grid; grid-template-columns: 4.2rem minmax(0, 1fr); gap: 10px; }
+.axis > div { display: grid; grid-template-columns: minmax(0, 1fr) 4.4rem; gap: 8px; }
+.ticks { display: flex; justify-content: space-between; font-family: var(--font-mono); font-size: 11px; color: var(--muted); }
+
+.tablewrap { overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; font-size: 14px; }
+th, td { padding: 8px 10px; text-align: right; border-bottom: 1px solid var(--line); white-space: nowrap; }
+th:first-child, td:first-child { text-align: left; }
+th { font-size: 12px; color: var(--muted); font-weight: 600; }
+td.n { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+tr.avg td { font-weight: 600; border-bottom: 0; }
+.rank { display: inline-block; min-width: 1.6em; text-align: center; font-family: var(--font-mono); font-weight: 600; }
+.rank.first { color: var(--t2); }
+@media (max-width: 520px) {
+  form { grid-template-columns: 1fr 1fr; }
+  form label:first-child { grid-column: 1 / -1; }
+  section { padding: 14px; }
+}
+@media (prefers-reduced-motion: reduce) { .fill { transition: none; } }
+</style>
+
+<div class="wrap">
+  <header>
+    <div class="kicker">Thực hành dập lửa · 6 nhóm</div>
+    <h1>Bảng kết quả dập lửa</h1>
+    <p class="lead">Sau mỗi lượt thực hành, nhóm nhập hai số đo vào phiếu. Biểu đồ và bảng bên dưới cập nhật ngay cho cả lớp cùng xem.</p>
+    <div class="def">
+      <span><i class="sw t1"></i><b>t₁</b> thời gian phản hồi: từ lúc phát hiện cháy đến lúc bắt đầu xử lý</span>
+      <span><i class="sw t2"></i><b>t₂</b> thời gian dập lửa: từ lúc bắt đầu xử lý đến lúc lửa tắt</span>
+    </div>
+  </header>
+
+  <section aria-labelledby="h-form">
+    <h2 id="h-form">Phiếu nhập kết quả</h2>
+    <form id="f" autocomplete="off" novalidate>
+      <label for="grp">Nhóm
+        <select id="grp"></select>
+      </label>
+      <label for="t1">t₁ (giây)
+        <input id="t1" inputmode="decimal" placeholder="vd. 4,5">
+      </label>
+      <label for="t2">t₂ (giây)
+        <input id="t2" inputmode="decimal" placeholder="vd. 12,8">
+      </label>
+      <div class="actions">
+        <button type="submit" id="save">Gửi kết quả</button>
+        <button type="button" class="ghost" id="clear" hidden>Xóa kết quả nhóm này</button>
+        <span id="msg" role="status" aria-live="polite"></span>
+      </div>
+    </form>
+  </section>
+
+  <section aria-labelledby="h-chart">
+    <h2 id="h-chart">So sánh t₁ và t₂ giữa các nhóm</h2>
+    <p class="empty" id="empty">Chưa có nhóm nào gửi kết quả. Điền phiếu ở trên để biểu đồ xuất hiện.</p>
+    <div class="chart" id="chart"></div>
+  </section>
+
+  <section aria-labelledby="h-table">
+    <h2 id="h-table">Bảng tổng hợp</h2>
+    <div class="tablewrap">
+      <table>
+        <thead><tr><th>Nhóm</th><th>t₁ (s)</th><th>t₂ (s)</th><th>t₁ + t₂ (s)</th><th>Hạng</th></tr></thead>
+        <tbody id="tb"></tbody>
+      </table>
+    </div>
+    <p class="note">Hạng xếp theo tổng t₁ + t₂, thời gian ngắn hơn là hạng cao hơn. Giá trị trung bình tính trên các nhóm đã nhập đủ cả hai số.</p>
+  </section>
+</div>
+
+<script>
+(function () {
+  var N = 6;
+  var STORAGE_KEY = "dap_lua_runs_v1";
+  var runs = {};
+  var $ = function (id) { return document.getElementById(id); };
+  var fmt = function (v) { return v.toLocaleString("vi-VN", { minimumFractionDigits: 1, maximumFractionDigits: 1 }); };
+  var isNum = function (v) { return typeof v === "number" && isFinite(v); };
+
+  try {
+    var saved = localStorage.getItem(STORAGE_KEY);
+    if (saved) runs = JSON.parse(saved) || {};
+  } catch (e) {}
+
+  function saveLocal() {
+    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(runs)); } catch (e) {}
+  }
+
+  var grp = $("grp");
+  for (var i = 1; i <= N; i++) {
+    var o = document.createElement("option");
+    o.value = String(i); o.textContent = "Nhóm " + i;
+    grp.appendChild(o);
+  }
+
+  function setMsg(t, err) { var m = $("msg"); m.textContent = t || ""; m.className = err ? "err" : ""; }
+
+  function niceMax() {
+    var m = 0;
+    for (var g = 1; g <= N; g++) { var r = runs[g]; if (!r) continue; if (isNum(r.t1)) m = Math.max(m, r.t1); if (isNum(r.t2)) m = Math.max(m, r.t2); }
+    if (m <= 0) return 20;
+    var step = m <= 20 ? 4 : m <= 60 ? 12 : m <= 120 ? 20 : 40;
+    return Math.ceil(m / step) * step;
+  }
+
+  function bar(cls, v, max) {
+    var d = document.createElement("div"); d.className = "bar " + cls;
+    var tr = document.createElement("span"); tr.className = "track";
+    var f = document.createElement("span"); f.className = "fill";
+    f.style.width = isNum(v) ? Math.min(100, v / max * 100) + "%" : "0%";
+    tr.appendChild(f);
+    var val = document.createElement("span"); val.className = "val" + (isNum(v) ? "" : " none");
+    val.textContent = isNum(v) ? fmt(v) + " s" : "chưa có";
+    d.appendChild(tr); d.appendChild(val);
+    return d;
+  }
+
+  function renderChart() {
+    var max = niceMax();
+    var c = $("chart"); c.textContent = "";
+    var any = false;
+    for (var g = 1; g <= N; g++) {
+      var r = runs[g]; if (r) any = true;
+      var row = document.createElement("div"); row.className = "row";
+      var n = document.createElement("div"); n.className = "gname"; n.textContent = "Nhóm " + g;
+      var bs = document.createElement("div"); bs.className = "bars";
+      bs.appendChild(bar("t1", r ? r.t1 : null, max));
+      bs.appendChild(bar("t2", r ? r.t2 : null, max));
+      row.appendChild(n); row.appendChild(bs); c.appendChild(row);
+    }
+    var ax = document.createElement("div"); ax.className = "axis";
+    ax.appendChild(document.createElement("span"));
+    var inner = document.createElement("div");
+    var tk = document.createElement("div"); tk.className = "ticks";
+    [0, 1, 2, 3, 4].forEach(function (k) { var s = document.createElement("span"); s.textContent = String(Math.round(max * k / 4 * 10) / 10).replace(".", ","); tk.appendChild(s); });
+    var u = document.createElement("span"); u.className = "ticks"; u.textContent = "giây";
+    inner.appendChild(tk); inner.appendChild(u); ax.appendChild(inner); c.appendChild(ax);
+    $("empty").hidden = any;
+  }
+
+  function renderTable() {
+    var tb = $("tb"); tb.textContent = "";
+    var done = [];
+    for (var g = 1; g <= N; g++) { var r = runs[g]; if (r && isNum(r.t1) && isNum(r.t2)) done.push({ g: g, tot: r.t1 + r.t2 }); }
+    done.sort(function (a, b) { return a.tot - b.tot; });
+    var rank = {}; done.forEach(function (d, i) { rank[d.g] = i + 1; });
+    var s1 = 0, s2 = 0;
+    for (g = 1; g <= N; g++) {
+      r = runs[g];
+      var tr = document.createElement("tr");
+      var cells = ["Nhóm " + g, r && isNum(r.t1) ? fmt(r.t1) : "–", r && isNum(r.t2) ? fmt(r.t2) : "–", rank[g] ? fmt(r.t1 + r.t2) : "–"];
+      cells.forEach(function (t, i) { var td = document.createElement("td"); if (i) td.className = "n"; td.textContent = t; tr.appendChild(td); });
+      var tdr = document.createElement("td");
+      if (rank[g]) { var sp = document.createElement("span"); sp.className = "rank" + (rank[g] === 1 ? " first" : ""); sp.textContent = String(rank[g]); tdr.appendChild(sp); } else tdr.textContent = "–";
+      tr.appendChild(tdr); tb.appendChild(tr);
+      if (rank[g]) { s1 += r.t1; s2 += r.t2; }
+    }
+    var av = document.createElement("tr"); av.className = "avg";
+    var k = done.length;
+    ["Trung bình lớp", k ? fmt(s1 / k) : "–", k ? fmt(s2 / k) : "–", k ? fmt((s1 + s2) / k) : "–", ""].forEach(function (t, i) { var td = document.createElement("td"); if (i && i < 4) td.className = "n"; td.textContent = t; av.appendChild(td); });
+    tb.appendChild(av);
+  }
+
+  function renderClear() { $("clear").hidden = !runs[+grp.value]; }
+
+  function fillForm() {
+    var r = runs[+grp.value];
+    $("t1").value = r && isNum(r.t1) ? String(r.t1).replace(".", ",") : "";
+    $("t2").value = r && isNum(r.t2) ? String(r.t2).replace(".", ",") : "";
+    renderClear();
+  }
+  function renderAll() { renderChart(); renderTable(); renderClear(); }
+
+  grp.addEventListener("change", function () { setMsg(""); fillForm(); });
+
+  function parse(s) { return parseFloat(String(s).trim().replace(",", ".")); }
+
+  $("f").addEventListener("submit", function (e) {
+    e.preventDefault();
+    var a = parse($("t1").value), b = parse($("t2").value);
+    if (!(a > 0 && a <= 3600) || !(b > 0 && b <= 3600)) {
+      setMsg("Nhập t₁ và t₂ là số giây lớn hơn 0.", true);
+      return;
+    }
+    var g = +grp.value;
+    runs[g] = { group: g, t1: Math.round(a * 10) / 10, t2: Math.round(b * 10) / 10, updatedAt: Date.now() };
+    saveLocal();
+    renderAll();
+    setMsg("Đã ghi kết quả Nhóm " + g + ".");
+  });
+
+  var armTimer = null;
+  $("clear").addEventListener("click", function () {
+    var b = $("clear");
+    if (!b.classList.contains("armed")) {
+      b.classList.add("armed"); b.textContent = "Bấm lần nữa để xóa";
+      armTimer = setTimeout(disarm, 4000); return;
+    }
+    disarm();
+    var g = +grp.value;
+    delete runs[g];
+    saveLocal();
+    renderAll();
+    $("t1").value = ""; $("t2").value = "";
+    setMsg("Đã xóa kết quả Nhóm " + g + ".");
+  });
+  function disarm() { clearTimeout(armTimer); var b = $("clear"); b.classList.remove("armed"); b.textContent = "Xóa kết quả nhóm này"; }
+
+  renderAll();
+  fillForm();
+})();
+</script>
+</body></html>
